@@ -1,0 +1,99 @@
+Expose is my port of the popular rails gem, decent_exposure.
+DRY up your code, by letting expose take care of instantiating objects from parameters passed in through requests.
+
+You can call expose two ways:
+
+expose('user')
+
+or
+
+expose('user', function(){
+  return new User;
+});
+
+By default, Expose will try to guess the correct type of what you are trying to expose based on the name of the exposure.
+so:
+expose('user')
+=> Object(User)
+
+expose('story')
+=> Object(Story)
+
+expose('random_object_thats_not_defined')
+=> NULL
+
+Expose will create a variable for any objects it instantiates.
+
+So from above, we have:
+
+$user
+$story
+$some_random_object_thats_not_defined
+
+
+Assuming a post/get request passes in the following data:
+
+$_POST['user'] = array('firstname' => 'john', 'lastname' => 'Mayer')
+
+then:
+
+expose('user')
+=> Object(User) array(2){'firstname' => 'John', 'lastname' => 'Mayer' }
+
+echo $user->firstname
+=> "John"
+
+Usage:
+<?php
+  require('lib/Expose.class.php')
+  expose('user') //- new User
+  expose('story') //- new Story ..etc
+  // it can also accept an anonymous block of code.
+
+  expose('user_is_valid', function(){
+    return $user->is_valid;
+  })
+
+  // now in your code, you can use two new variables, $user, and $story
+
+
+?>
+Example:
+
+index.php
+<?php
+  expose('user');
+  expose('story');
+  expose('stories', Story::all());
+  echo render('index', array('layout' => 'application'));
+?>
+
+view (using haml):
+%form{:method => "POST", :action => "index"}
+  %dl
+    %dt
+      input#title{:type => "text", :name => "story[title]", :placeholder => "title", :required => "required", :value => $story->title}
+
+    %dt
+      %textarea#content{:name => "story[content]", :required => "required"}= $story->content
+    %dt
+      %input#e %small Hate these things.  But its the only way for us to let you know Careen from NY likes your story =)
+    %dt
+      %input#password{:type => "text", :name => "user[password]", :placeholder => "password", :required => "required"}
+    %dt
+      %small You're done.
+    %dt
+      %input#submit{:type => "submit", :value => "Done"}
+
+- foreach($stories as $ustory)
+    %article
+      %header
+        %h2= $ustory->title
+        %p Shared August 30, 20011 at 5:04 p.m. (UTC)
+      %p= $ustory->content
+
+
+Regards,
+
+Dante Elrik
+delrik[a-t]elrikgroup.(are_you_human ? com : null)
